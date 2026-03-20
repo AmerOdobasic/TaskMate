@@ -2,6 +2,7 @@ package com.group13.studysync.ui;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color; // Added this import
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,27 +16,22 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.group13.studysync.R;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class TaskListFragment extends Fragment {
 
-    private RecyclerView recyclerView;
     private TaskAdapter adapter;
-    private ArrayList<String> currentTasks;
+    private ArrayList<TaskItem> currentTasks;
 
-    // Waits for AddTaskActivity to finish, unboxes the text, and updates the list.
     private final ActivityResultLauncher<Intent> addTaskLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                    // Extract the text from the envelope
-                    String newTask = result.getData().getStringExtra("NEW_TASK_TITLE");
+                    String title = result.getData().getStringExtra("NEW_TASK_TITLE");
+                    String desc = result.getData().getStringExtra("NEW_TASK_DESC");
+                    int color = result.getData().getIntExtra("NEW_TASK_COLOR", Color.GRAY);
 
-                    // Add it to the top of our list (index 0)
-                    currentTasks.add(0, newTask);
-
-                    // Tells the Adapter to refresh the screen with the new data
+                    String date = result.getData().getStringExtra("NEW_TASK_DATE");
+                    currentTasks.add(0, new TaskItem(title, desc, color, date));
                     adapter.setTasks(currentTasks);
                 }
             }
@@ -46,19 +42,14 @@ public class TaskListFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_task_list, container, false);
 
-        recyclerView = view.findViewById(R.id.recycler_tasks);
+        RecyclerView recyclerView = view.findViewById(R.id.recycler_tasks);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         adapter = new TaskAdapter();
         recyclerView.setAdapter(adapter);
 
-        // AMER, WHEN THE DATABASE IS DONE, ALL TEST DATA WILL BE DELETED
         if (currentTasks == null) {
-            currentTasks = new ArrayList<>(Arrays.asList(
-                    "Finish Mobile Dev Assignment",
-                    "Grocery Shopping",
-                    "Reply to Emails"
-            ));
+            currentTasks = new ArrayList<>();
         }
         adapter.setTasks(currentTasks);
 
