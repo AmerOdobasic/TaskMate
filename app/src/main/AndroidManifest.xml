@@ -2,6 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Allows the app to receive a broadcast when the device finishes booting -->
+    <!-- Used by BootReceiver to reschedule all task notifications after a reboot -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- Required on Android 13+ to show notifications -->
+    <!-- User will be prompted to allow this on first app launch -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -20,6 +28,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Triggered by AlarmManager when a task reminder is due -->
+        <!-- Receives task details and displays the notification to the user -->
+        <receiver android:name=".receivers.TaskNotificationReceiver"
+            android:exported="false" />
+
+        <!-- Listens for device reboot and reschedules all incomplete task notifications -->
+        <!-- exported=true is required for the system to deliver the BOOT_COMPLETED broadcast -->
+        <receiver android:name=".receivers.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
