@@ -21,6 +21,7 @@ public interface TaskDao {
     @Delete
     void delete(Task task);
 
+    // Retrieves all tasks from the task table, ordered by their due date in ascending order
     @Query("SELECT * FROM task_table ORDER BY dueDate ASC")
     LiveData<List<Task>> getAllTasks();
 
