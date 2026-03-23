@@ -1,14 +1,15 @@
 package com.group13.studysync.ui;
 
-import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import com.group13.studysync.R;
+import com.group13.studysync.data.Task;
+import com.group13.studysync.data.TaskViewModel;
 
 public class AddTaskActivity extends AppCompatActivity {
 
@@ -24,41 +25,48 @@ public class AddTaskActivity extends AppCompatActivity {
         Button btnPickDate = findViewById(R.id.btn_pick_date);
         Button btnSave = findViewById(R.id.btn_save_task);
 
-        // Array used to store the date so we can edit it inside the popup
+        // Initialize ViewModel for local database operations
+        TaskViewModel taskViewModel = new ViewModelProvider(this).get(TaskViewModel.class);
+
         final String[] selectedDate = {"No Date Set"};
 
-        // Show the Calendar Popup when clicked
+        // Instantiate calendar and display DatePickerDialog for target deadline
         btnPickDate.setOnClickListener(v -> {
             java.util.Calendar cal = java.util.Calendar.getInstance();
             new android.app.DatePickerDialog(this, (view, year, month, day) -> {
                 selectedDate[0] = (month + 1) + "/" + day + "/" + year;
                 btnPickDate.setText("DATE: " + selectedDate[0]);
-            }, cal.get(java.util.Calendar.YEAR), cal.get(java.util.Calendar.MONTH), cal.get(java.util.Calendar.DAY_OF_MONTH)).show();
+            }, cal.get(java.util.Calendar.YEAR),
+                    cal.get(java.util.Calendar.MONTH),
+                    cal.get(java.util.Calendar.DAY_OF_MONTH)).show();
         });
 
         btnSave.setOnClickListener(v -> {
             String title = etTaskTitle.getText().toString().trim();
             String desc = etTaskDesc.getText().toString().trim();
 
-            // Colours separating task priorities
-            int selectedColor = android.graphics.Color.parseColor("#444444"); // Low: Very Dark Grey
-
+            // Map radio button selection to database priority schema
+            String priority = "Low";
             if (rbHigh.isChecked()) {
-                selectedColor = android.graphics.Color.parseColor("#E50000"); // High: Persona Red
+                priority = "High";
             } else if (rbMed.isChecked()) {
-                selectedColor = android.graphics.Color.parseColor("#AAAAAA"); // Normal: Bright Grey
+                priority = "Medium";
             }
 
             if (title.isEmpty()) {
                 Toast.makeText(this, "Please enter a title", Toast.LENGTH_SHORT).show();
             } else {
-                android.content.Intent resultIntent = new android.content.Intent();
-                resultIntent.putExtra("NEW_TASK_TITLE", title);
-                resultIntent.putExtra("NEW_TASK_DESC", desc);
-                resultIntent.putExtra("NEW_TASK_COLOR", selectedColor);
-                resultIntent.putExtra("NEW_TASK_DATE", selectedDate[0]); // SEND THE DATE!
+                // Construct new Task entity and insert into Room database
+                // LiveData observers in the Fragment will automatically handle UI refresh
+                Task newTask = new Task();
+                newTask.setTitle(title);
+                newTask.setDescription(desc);
+                newTask.setPriority(priority);
+                newTask.setDueDate(selectedDate[0]);
+                newTask.setComplete(false);
 
-                setResult(RESULT_OK, resultIntent);
+                taskViewModel.insert(newTask);
+
                 finish();
             }
         });
