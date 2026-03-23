@@ -56,14 +56,8 @@ public class AddTaskActivity extends AppCompatActivity {
             if (title.isEmpty()) {
                 Toast.makeText(this, "Please enter a title", Toast.LENGTH_SHORT).show();
             } else {
-                // Construct new Task entity and insert into Room database
-                // LiveData observers in the Fragment will automatically handle UI refresh
-                Task newTask = new Task();
-                newTask.setTitle(title);
-                newTask.setDescription(desc);
-                newTask.setPriority(priority);
-                newTask.setDueDate(selectedDate[0]);
-                newTask.setComplete(false);
+                // Construct new Task entity using Amer's required parameters
+                Task newTask = new Task(title, desc, selectedDate[0], priority, false);
 
                 taskViewModel.insert(newTask);
 
