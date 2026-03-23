@@ -24,4 +24,9 @@ public interface TaskDao {
     // Retrieves all tasks from the task table, ordered by their due date in ascending order
     @Query("SELECT * FROM task_table ORDER BY dueDate ASC")
     LiveData<List<Task>> getAllTasks();
+
+    // Added synchronous version of getAllTasks() needed by BootReceiver
+    // LiveData cannot be used in a BroadcastReceiver since it requires a lifecycle owner
+    @Query("SELECT * FROM task_table")
+    List<Task> getAllTasksSync();
 }
