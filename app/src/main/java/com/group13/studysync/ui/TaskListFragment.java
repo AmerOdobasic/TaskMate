@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.group13.studysync.R;
+import com.group13.studysync.data.Task;
 import com.group13.studysync.data.TaskViewModel;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.List;
 public class TaskListFragment extends Fragment {
 
     private TaskAdapter adapter;
+    private List<Task> currentDatabaseTasks = new ArrayList<>();
 
     @Nullable
     @Override
@@ -31,29 +33,36 @@ public class TaskListFragment extends Fragment {
         adapter = new TaskAdapter();
         recyclerView.setAdapter(adapter);
 
-        // Initialize ViewModel scoped to the Activity to persist across lifecycle changes
-        TaskViewModel taskViewModel = new ViewModelProvider(requireActivity())
-                .get(TaskViewModel.class);
+        // Initialize ViewModel
+        TaskViewModel taskViewModel = new ViewModelProvider(requireActivity()).get(TaskViewModel.class);
 
-        // Observe Room database changes via LiveData for reactive UI updates
+        // Set the listener
+        adapter.setOnTaskCompleteListener(position -> {
+            Task finishedTask = currentDatabaseTasks.get(position);
+            finishedTask.setComplete(true);
+            taskViewModel.update(finishedTask);
+        });
+
+        // Observe the data
         taskViewModel.getAllTasks().observe(getViewLifecycleOwner(), tasks -> {
+            currentDatabaseTasks.clear();
             List<TaskItem> taskItems = new ArrayList<>();
-            for (com.group13.studysync.data.Task task : tasks) {
 
-                // Map database priority strings to UI color integers
-                int color = TaskColorHelper.getColorFromPriority(task.getPriority());
-
-                taskItems.add(new TaskItem(
-                        task.getTitle(),
-                        task.getDescription(),
-                        color,
-                        task.getDueDate()
-                ));
+            for (Task task : tasks) {
+                if (!task.isComplete()) { // Only show incomplete tasks
+                    currentDatabaseTasks.add(task); // Keep raw database list synced with visual list
+                    int color = TaskColorHelper.getColorFromPriority(task.getPriority());
+                    taskItems.add(new TaskItem(
+                            task.getTitle(),
+                            task.getDescription(),
+                            color,
+                            task.getDueDate()
+                    ));
+                }
             }
             adapter.setTasks(taskItems);
         });
 
-        // Launch AddTaskActivity. State management is handled natively by Room/LiveData
         View fabAddTask = view.findViewById(R.id.fab_add_task);
         fabAddTask.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), AddTaskActivity.class);
