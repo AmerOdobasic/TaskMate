@@ -9,13 +9,21 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.group13.studysync.R;
+import com.group13.studysync.data.Task;
+import com.group13.studysync.data.TaskViewModel;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CalendarFragment extends Fragment {
+
+    private String selectedDate = "";
+    private List<Task> allDatabaseTasks = new ArrayList<>();
+    private List<Task> displayedDatabaseTasks = new ArrayList<>();
+    private TaskAdapter adapter;
 
     @Nullable
     @Override
@@ -27,20 +35,47 @@ public class CalendarFragment extends Fragment {
         RecyclerView recyclerCalendar = view.findViewById(R.id.recycler_calendar_tasks);
 
         recyclerCalendar.setLayoutManager(new LinearLayoutManager(getContext()));
-        TaskAdapter adapter = new TaskAdapter();
+        adapter = new TaskAdapter();
         recyclerCalendar.setAdapter(adapter);
 
-        // When the user clicks a date on the calendar:
-        calendarView.setOnDateChangeListener((view1, year, month, dayOfMonth) -> {
-            String selectedDate = (month + 1) + "/" + dayOfMonth + "/" + year;
-            tvScheduleHeader.setText("Tasks for " + selectedDate);
+        // Initialize ViewModel
+        TaskViewModel taskViewModel = new ViewModelProvider(requireActivity()).get(TaskViewModel.class);
 
-            // The list is now completely empty.
-            // Amer will replace this exact spot with: database.getTasksByDate(selectedDate);
-            List<TaskItem> emptyList = new ArrayList<>();
-            adapter.setTasks(emptyList);
+        // Set the listener
+        adapter.setOnTaskCompleteListener(position -> {
+            Task finishedTask = displayedDatabaseTasks.get(position);
+            finishedTask.setComplete(true);
+            taskViewModel.update(finishedTask);
+        });
+
+        // Observe the data
+        taskViewModel.getAllTasks().observe(getViewLifecycleOwner(), tasks -> {
+            allDatabaseTasks = tasks;
+            filterTasksByDate();
+        });
+
+        calendarView.setOnDateChangeListener((view1, year, month, dayOfMonth) -> {
+            selectedDate = (month + 1) + "/" + dayOfMonth + "/" + year;
+            tvScheduleHeader.setText("Tasks for " + selectedDate);
+            filterTasksByDate();
         });
 
         return view;
+    }
+
+    private void filterTasksByDate() {
+        if (selectedDate.isEmpty() || allDatabaseTasks == null) return;
+
+        List<TaskItem> dailyTasks = new ArrayList<>();
+        displayedDatabaseTasks.clear();
+
+        for (Task task : allDatabaseTasks) {
+            if (selectedDate.equals(task.getDueDate()) && !task.isComplete()) {
+                int color = TaskColorHelper.getColorFromPriority(task.getPriority());
+                dailyTasks.add(new TaskItem(task.getTitle(), task.getDescription(), color, task.getDueDate()));
+                displayedDatabaseTasks.add(task);
+            }
+        }
+        adapter.setTasks(dailyTasks);
     }
 }
