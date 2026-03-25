@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -28,29 +29,28 @@ public class TaskListFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_task_list, container, false);
 
+        TextView tvNoTasks = view.findViewById(R.id.tv_no_tasks);
         RecyclerView recyclerView = view.findViewById(R.id.recycler_tasks);
+
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new TaskAdapter();
         recyclerView.setAdapter(adapter);
 
-        // Initialize ViewModel
         TaskViewModel taskViewModel = new ViewModelProvider(requireActivity()).get(TaskViewModel.class);
 
-        // Set the listener
         adapter.setOnTaskCompleteListener(position -> {
             Task finishedTask = currentDatabaseTasks.get(position);
             finishedTask.setComplete(true);
             taskViewModel.update(finishedTask);
         });
 
-        // Observe the data
         taskViewModel.getAllTasks().observe(getViewLifecycleOwner(), tasks -> {
             currentDatabaseTasks.clear();
             List<TaskItem> taskItems = new ArrayList<>();
 
             for (Task task : tasks) {
-                if (!task.isComplete()) { // Only show incomplete tasks
-                    currentDatabaseTasks.add(task); // Keep raw database list synced with visual list
+                if (!task.isComplete()) {
+                    currentDatabaseTasks.add(task);
                     int color = TaskColorHelper.getColorFromPriority(task.getPriority());
                     taskItems.add(new TaskItem(
                             task.getTitle(),
@@ -61,6 +61,15 @@ public class TaskListFragment extends Fragment {
                 }
             }
             adapter.setTasks(taskItems);
+
+            // Based on how many tasks you have, shows a message
+            if (taskItems.isEmpty()) {
+                tvNoTasks.setVisibility(View.VISIBLE);
+                recyclerView.setVisibility(View.GONE);
+            } else {
+                tvNoTasks.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
+            }
         });
 
         View fabAddTask = view.findViewById(R.id.fab_add_task);
