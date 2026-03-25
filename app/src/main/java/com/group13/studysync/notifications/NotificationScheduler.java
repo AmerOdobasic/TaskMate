@@ -8,9 +8,9 @@ import android.content.SharedPreferences;
 
 import androidx.preference.PreferenceManager;
 
+import android.os.Build;
 import com.group13.studysync.data.Task;
 import com.group13.studysync.receivers.TaskNotificationReceiver;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -22,10 +22,10 @@ import java.util.Locale;
 //   NotificationScheduler.cancelNotification(context, task);    // when a task is deleted or completed
 public class NotificationScheduler {
 
-    // Must match the format Member 2 uses in the Add Task form's DatePickerDialog
+    // Must match the format used in the Add Task form's DatePickerDialog
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 
-    // How many hours before the due date to send the reminder (default: 24 hours before)
+    // How long before the due date to fire the reminder — currently set to 24 hours
     private static final long REMINDER_OFFSET_MS = 24 * 60 * 60 * 1000L;
 
     public static void scheduleNotification(Context context, Task task) {
@@ -35,13 +35,14 @@ public class NotificationScheduler {
         if (!notificationsEnabled) return;
 
         // Parse the due date string into a timestamp
+        // Convert the due date string into a millisecond timestamp
         long triggerTimeMs = parseDueDate(task.getDueDate());
-        if (triggerTimeMs == -1) return; // if it couldn't parse the date it skips
+        if (triggerTimeMs == -1) return; // skip if the date couldn't be parsed
 
-        // Fire the notification 24 hours before the due date
+        // Subtract 24 hours to get the reminder time
         long alarmTimeMs = triggerTimeMs - REMINDER_OFFSET_MS;
 
-        // Don't schedule if the alarm time is already in the past
+        // Don't schedule if the reminder time is already in the past
         if (alarmTimeMs <= System.currentTimeMillis()) return;
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
@@ -49,8 +50,17 @@ public class NotificationScheduler {
 
         PendingIntent pendingIntent = buildPendingIntent(context, task);
 
-        // setAndAllowWhileIdle ensures the alarm fires even when the device is in low-power mode
-        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTimeMs, pendingIntent);
+        // On Android 12+ check if we have permission to schedule exact alarms
+        // If not, fall back to setAndAllowWhileIdle which doesn't require special permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTimeMs, pendingIntent);
+            } else {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTimeMs, pendingIntent);
+            }
+        } else {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTimeMs, pendingIntent);
+        }
     }
 
     public static void cancelNotification(Context context, Task task) {
@@ -77,7 +87,8 @@ public class NotificationScheduler {
         );
     }
 
-    // Converts the dueDate string to milliseconds since epoch
+    // Converts the dueDate string (e.g. "2026-03-25") to milliseconds since epoch
+    // Returns -1 if the string is null, empty, or cannot be parsed
     private static long parseDueDate(String dueDateStr) {
         if (dueDateStr == null || dueDateStr.isEmpty()) return -1;
         try {
