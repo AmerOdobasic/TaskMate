@@ -1,26 +1,28 @@
 package com.group13.studysync;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.group13.studysync.ui.HomeFragment;
-import com.group13.studysync.ui.CalendarFragment;
-import com.group13.studysync.ui.TimerFragment;
-import com.group13.studysync.ui.TaskListFragment;
-
 import com.group13.studysync.notifications.NotificationsHelper;
+import com.group13.studysync.settings.SettingsActivity;
+import com.group13.studysync.ui.CalendarFragment;
+import com.group13.studysync.ui.HomeFragment;
+import com.group13.studysync.ui.TaskListFragment;
+import com.group13.studysync.ui.TimerFragment;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int NOTIFICATION_PERMISSION_CODE = 100;
+    private static final String KEY_TAB_INDEX = "current_tab_index";
 
     // 0 = Home, 1 = Calendar, 2 = Tasks
     private int currentTabIndex = 0;
@@ -30,14 +32,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-<<<<<<< Updated upstream
-=======
+
+
         // Restore tab index after rotation
         if (savedInstanceState != null) {
             currentTabIndex = savedInstanceState.getInt(KEY_TAB_INDEX, 0);
         }
 
->>>>>>> Stashed changes
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
         if (savedInstanceState == null) {
@@ -64,20 +65,20 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_tasks) {
                 selectedFragment = new TaskListFragment();
                 newTabIndex = 3;
+            } else if (itemId == R.id.nav_settings) {
+                selectedFragment = new com.group13.studysync.settings.SettingsFragment();
+                newTabIndex = 4;
             }
 
-            // Determine which way we move
             if (newTabIndex > currentTabIndex) {
-                // Moving Right (e.g., Home to Calendar)
                 enterAnim = R.anim.slide_in_right;
                 exitAnim = R.anim.slide_out_left;
             } else if (newTabIndex < currentTabIndex) {
-                // Moving Left (e.g., Tasks to Calendar)
                 enterAnim = R.anim.slide_in_left;
                 exitAnim = R.anim.slide_out_right;
             }
 
-            currentTabIndex = newTabIndex; // Update our tracker
+            currentTabIndex = newTabIndex;
 
             if (selectedFragment != null) {
                 getSupportFragmentManager().beginTransaction()
@@ -89,11 +90,8 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
-        // Set up the notification channel — must be called once on app startup
         NotificationsHelper.createNotificationChannel(this);
 
-        // Request notification permission on Android 13+ (API 33+)
-        // Without this, notifications are silently blocked on newer devices
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                     != PackageManager.PERMISSION_GRANTED) {
@@ -104,10 +102,32 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Save the current tab so rotation doesn't lose it
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(KEY_TAB_INDEX, currentTabIndex);
+    }
+
+    // Inflate the settings gear icon in the toolbar
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    // Handle settings icon tap
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        // Permission result is handled automatically by the system
-        // Notifications will work if the user taps Allow
     }
 }
