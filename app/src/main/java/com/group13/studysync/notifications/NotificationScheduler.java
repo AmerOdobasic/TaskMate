@@ -4,6 +4,9 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+
+import androidx.preference.PreferenceManager;
 
 import com.group13.studysync.data.Task;
 import com.group13.studysync.receivers.TaskNotificationReceiver;
@@ -26,6 +29,11 @@ public class NotificationScheduler {
     private static final long REMINDER_OFFSET_MS = 24 * 60 * 60 * 1000L;
 
     public static void scheduleNotification(Context context, Task task) {
+        // Check if the user has notifications enabled in Settings
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean notificationsEnabled = prefs.getBoolean("notifications_enabled", true);
+        if (!notificationsEnabled) return;
+
         // Parse the due date string into a timestamp
         long triggerTimeMs = parseDueDate(task.getDueDate());
         if (triggerTimeMs == -1) return; // if it couldn't parse the date it skips

@@ -1,9 +1,11 @@
 package com.group13.studysync.ui;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -76,6 +78,18 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 }
             }
         });
+
+        // Share button — fires an implicit intent so the user can share the task title + due date
+        // to any app that accepts text (Messages, Gmail, WhatsApp, etc.)
+        if (holder.btnShare != null) {
+            holder.btnShare.setOnClickListener(v -> {
+                String shareText = "Task: " + task.title + "\nDue: " + task.date;
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("text/plain");
+                shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
+                v.getContext().startActivity(Intent.createChooser(shareIntent, "Share Task via"));
+            });
+        }
     }
 
     @Override
@@ -87,6 +101,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         CheckBox checkBox;
         TextView tvTitle, tvDesc, tvDate;
         View priorityMarker;
+        ImageButton btnShare; // Share button — add id btn_share_task to item_task.xml
 
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -95,6 +110,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             tvDesc = itemView.findViewById(R.id.tv_task_desc);
             tvDate = itemView.findViewById(R.id.tv_task_date);
             priorityMarker = itemView.findViewById(R.id.priority_marker);
+            btnShare = itemView.findViewById(R.id.btn_share_task); // add this to item_task.xml
         }
     }
 }

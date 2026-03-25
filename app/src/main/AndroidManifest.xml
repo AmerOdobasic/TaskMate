@@ -42,6 +42,8 @@
             </intent-filter>
         </receiver>
         <activity android:name=".ui.AddTaskActivity" />
+        <activity android:name=".settings.SettingsActivity" />
+
     </application>
 
 </manifest>
