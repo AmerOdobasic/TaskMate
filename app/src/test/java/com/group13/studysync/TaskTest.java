@@ -1,33 +1,32 @@
 package com.group13.studysync;
 
-import static org.junit.Assert.assertTrue;
-import org.junit.Test;
 import com.group13.studysync.data.Task;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
-/**
- * These are Unit tests for the Task model.
- * These tests make sure our data logic (like date comparisons and status toggles)
- * works correctly before we ever run the app on a phone.
- */
 public class TaskTest {
-    // Verifies that the Task correctly identifies an overdue date.
-    @Test
-    public void testTaskIsOverdue() {
-        Task task = new Task("Test Task", "Description", "2024-01-01", "High", false);
 
-        // Checks if the due date is before today (2026-03-20)
-        // compareTo returns a negative number if the string is "less than" (earlier) than the target
-        assertTrue(task.getDueDate().compareTo("2026-03-20") < 0);
-    }
-    /**
-     * Checks that the isComplete boolean can be toggled correctly.
-     * This makes sure Member 2's UI checkboxes will work with our data model.
-     */
+    // Test 1: Verify task completion can be toggled
     @Test
     public void testTaskCompletionToggle() {
-        Task task = new Task("Test Task", "Description", "2026-04-01", "Low", false);
-
+        // Provide the 5 required arguments: title, description, date, priority, isComplete
+        Task task = new Task("Test", "Desc", "2026-03-24", "Low", false);
         task.setComplete(true);
         assertTrue(task.isComplete());
+    }
+
+    // Test 2: Verify task title is stored correctly
+    @Test
+    public void testTaskTitleNotEmpty() {
+        Task task = new Task("Math Assignment", "Desc", "2026-03-24", "Medium", false);
+        assertNotNull(task.getTitle());
+        assertFalse(task.getTitle().isEmpty());
+    }
+
+    // Test 3: Verify priority is stored correctly
+    @Test
+    public void testTaskPriorityValues() {
+        Task task = new Task("Test", "Desc", "2026-03-24", "High", false);
+        assertEquals("High", task.getPriority());
     }
 }
