@@ -23,7 +23,7 @@ import java.util.Locale;
 public class NotificationScheduler {
 
     // Must match the format used in the Add Task form's DatePickerDialog
-    private static final String DATE_FORMAT = "yyyy-MM-dd";
+    private static final String DATE_FORMAT = "M/d/yyyy";
 
     // How long before the due date to fire the reminder — currently set to 24 hours
     private static final long REMINDER_OFFSET_MS = 24 * 60 * 60 * 1000L;
