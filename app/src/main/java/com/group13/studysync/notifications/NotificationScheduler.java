@@ -22,14 +22,16 @@ import java.util.Locale;
 //   NotificationScheduler.cancelNotification(context, task);    // when a task is deleted or completed
 public class NotificationScheduler {
 
-    // Supports "yyyy-MM-dd HH:mm" (with time) and "yyyy-MM-dd" (date only)
+    // Supports "yyyy-MM-dd HH:mm" (with time) and "yyyy-MM-dd"
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm";
     private static final String DATE_ONLY_FORMAT  = "yyyy-MM-dd";
 
-    // How many hours before the due date to send the reminder (default: 24 hours before)
+    // How many hours before the due date to send the reminder
 
-    //private static final long REMINDER_OFFSET_MS = 24 * 60 * 60 * 1000L;
-    private static final long REMINDER_OFFSET_MS = 0L;
+    private static final long REMINDER_OFFSET_MS = 24 * 60 * 60 * 1000L;
+
+    // uncomment this if you want try the notification out; then just make a task for 2 minute from now
+    //private static final long REMINDER_OFFSET_MS = 0L;
 
     public static void scheduleNotification(Context context, Task task) {
         // Check if the user has notifications enabled in Settings
