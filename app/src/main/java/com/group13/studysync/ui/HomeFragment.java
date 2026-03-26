@@ -54,9 +54,12 @@ public class HomeFragment extends Fragment {
             List<TaskItem> urgentUIItems = new ArrayList<>();
             displayedUrgentTasks.clear();
 
-            // Get exact string for Today
+            // Get exact string for Today in yyyy-MM-dd format to match AddTaskActivity
             Calendar cal = Calendar.getInstance();
-            String todayStr = (cal.get(Calendar.MONTH) + 1) + "/" + cal.get(Calendar.DAY_OF_MONTH) + "/" + cal.get(Calendar.YEAR);
+            String todayStr = String.format(Locale.US, "%04d-%02d-%02d",
+                    cal.get(Calendar.YEAR),
+                    cal.get(Calendar.MONTH) + 1,
+                    cal.get(Calendar.DAY_OF_MONTH));
 
             // Strict boundaries for "Tomorrow" and "7 Days From Now"
             Calendar midnightCal = Calendar.getInstance();
@@ -66,13 +69,17 @@ public class HomeFragment extends Fragment {
             long endOfToday = midnightCal.getTimeInMillis();
             long sevenDaysFromNow = endOfToday + (7L * 24 * 60 * 60 * 1000);
 
-            SimpleDateFormat sdf = new SimpleDateFormat("M/d/yyyy", Locale.US);
+            // Updated to parse yyyy-MM-dd format
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
             for (Task task : tasks) {
                 if (!task.isComplete()) {
 
-                    // If task due exactly today
-                    if (todayStr.equals(task.getDueDate())) {
+                    // Extract just the date part in case time is appended
+                    String datePart = task.getDueDate().split(" ")[0];
+
+                    // If task due exactly today — use startsWith to handle date+time format
+                    if  (task.getDueDate().startsWith(todayStr) && "High".equals(task.getPriority())) {
                         todayCount++;
                         int color = TaskColorHelper.getColorFromPriority(task.getPriority());
                         urgentUIItems.add(new TaskItem(task.getTitle(), task.getDescription(), color, task.getDueDate()));
@@ -81,7 +88,7 @@ public class HomeFragment extends Fragment {
                     // If task is due any other day
                     else {
                         try {
-                            Date taskDate = sdf.parse(task.getDueDate());
+                            Date taskDate = sdf.parse(datePart);
                             // Ensure the date is strictly after today + within the next 7 days
                             if (taskDate != null && taskDate.getTime() > endOfToday && taskDate.getTime() <= sevenDaysFromNow) {
                                 upcomingCount++;

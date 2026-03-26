@@ -8,10 +8,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.widget.Switch;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 
@@ -23,7 +23,6 @@ public class SettingsFragment extends Fragment {
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
 
-        // Root scroll view
         ScrollView scrollView = new ScrollView(requireContext());
         scrollView.setBackgroundColor(Color.BLACK);
 
@@ -33,40 +32,36 @@ public class SettingsFragment extends Fragment {
         scrollView.addView(root);
 
         // ── NOTIFICATIONS SECTION ──
-        TextView notifHeader = makeHeader("Notifications");
-        root.addView(notifHeader);
-
-        // Divider
+        root.addView(makeHeader("Notifications"));
         root.addView(makeDivider());
 
-        // Row: label + switch
-        LinearLayout notifRow = new LinearLayout(requireContext());
-        notifRow.setOrientation(LinearLayout.HORIZONTAL);
-        notifRow.setPadding(0, 32, 0, 32);
+        LinearLayout notifRow = makeRow();
 
         LinearLayout notifText = new LinearLayout(requireContext());
         notifText.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         notifText.setLayoutParams(textParams);
+        notifText.addView(makeTitle("Enable Notifications"));
+        notifText.addView(makeSummary("Receive reminders before task due dates"));
 
-        TextView notifTitle = makeTitle("Enable Notifications");
-        TextView notifSummary = makeSummary("Receive reminders before task due dates");
-        notifText.addView(notifTitle);
-        notifText.addView(notifSummary);
+        boolean notifEnabled = prefs.getBoolean("notifications_enabled", true);
+        TextView notifStateLabel = makeStateLabel(notifEnabled ? "ON" : "OFF", notifEnabled);
 
-        Switch notifSwitch = new Switch(requireContext());
-        notifSwitch.setChecked(prefs.getBoolean("notifications_enabled", true));
-        notifSwitch.setOnCheckedChangeListener((btn, isChecked) ->
-                prefs.edit().putBoolean("notifications_enabled", isChecked).apply());
+        SwitchCompat notifSwitch = makeSwitch(notifEnabled);
+        notifSwitch.setOnCheckedChangeListener((btn, isChecked) -> {
+            prefs.edit().putBoolean("notifications_enabled", isChecked).apply();
+            notifStateLabel.setText(isChecked ? "ON" : "OFF");
+            notifStateLabel.setTextColor(isChecked ? Color.parseColor("#E50000") : Color.parseColor("#888888"));
+        });
 
         notifRow.addView(notifText);
+        notifRow.addView(notifStateLabel);
         notifRow.addView(notifSwitch);
         root.addView(notifRow);
 
         // ── ABOUT SECTION ──
         root.addView(makeDivider());
-        TextView aboutHeader = makeHeader("About");
-        root.addView(aboutHeader);
+        root.addView(makeHeader("About"));
         root.addView(makeDivider());
 
         LinearLayout versionRow = new LinearLayout(requireContext());
@@ -79,10 +74,47 @@ public class SettingsFragment extends Fragment {
         return scrollView;
     }
 
+    private LinearLayout makeRow() {
+        LinearLayout row = new LinearLayout(requireContext());
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setPadding(0, 32, 0, 32);
+        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        return row;
+    }
+
+    private TextView makeStateLabel(String text, boolean isOn) {
+        TextView tv = new TextView(requireContext());
+        tv.setText(text);
+        tv.setTextColor(isOn ? Color.parseColor("#E50000") : Color.parseColor("#888888"));
+        tv.setTextSize(13f);
+        tv.setTypeface(null, android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.setMarginEnd(12);
+        tv.setLayoutParams(params);
+        return tv;
+    }
+
+    private SwitchCompat makeSwitch(boolean checked) {
+        SwitchCompat sw = new SwitchCompat(requireContext());
+        sw.setChecked(checked);
+        sw.setThumbTintList(android.content.res.ColorStateList.valueOf(
+                checked ? Color.parseColor("#E50000") : Color.parseColor("#555555")));
+        sw.setTrackTintList(android.content.res.ColorStateList.valueOf(
+                checked ? Color.parseColor("#7A0000") : Color.parseColor("#333333")));
+        sw.setOnCheckedChangeListener((btn, isChecked) -> {
+            sw.setThumbTintList(android.content.res.ColorStateList.valueOf(
+                    isChecked ? Color.parseColor("#E50000") : Color.parseColor("#555555")));
+            sw.setTrackTintList(android.content.res.ColorStateList.valueOf(
+                    isChecked ? Color.parseColor("#7A0000") : Color.parseColor("#333333")));
+        });
+        return sw;
+    }
+
     private TextView makeHeader(String text) {
         TextView tv = new TextView(requireContext());
         tv.setText(text);
-        tv.setTextColor(Color.parseColor("#E50000")); // app red for section headers
+        tv.setTextColor(Color.parseColor("#E50000"));
         tv.setTextSize(13f);
         tv.setPadding(0, 32, 0, 8);
         return tv;

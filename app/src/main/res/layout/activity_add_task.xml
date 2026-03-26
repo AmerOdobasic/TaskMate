@@ -5,16 +5,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
-    android:background="#121212"> <TextView
-    android:id="@+id/tv_header"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="New Task"
-    android:textSize="28sp"
-    android:textStyle="bold"
-    android:textColor="#FFFFFF"
-    app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintStart_toStartOf="parent" />
+    android:background="#121212">
+
+    <TextView
+        android:id="@+id/tv_header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Task"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <EditText
         android:id="@+id/et_task_title"
@@ -56,18 +58,22 @@
         android:orientation="horizontal"
         android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/tv_priority_label">
+
         <RadioButton
             android:id="@+id/rb_high"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="High"
-            android:textColor="#E50000" /> <RadioButton
-        android:id="@+id/rb_med"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Normal"
-        android:textColor="#FFFFFF"
-        android:layout_marginStart="16dp" />
+            android:textColor="#E50000" />
+
+        <RadioButton
+            android:id="@+id/rb_med"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Normal"
+            android:textColor="#FFFFFF"
+            android:layout_marginStart="16dp" />
+
         <RadioButton
             android:id="@+id/rb_low"
             android:layout_width="wrap_content"
@@ -75,17 +81,38 @@
             android:text="Low"
             android:textColor="#FFFFFF"
             android:layout_marginStart="16dp" />
+
     </RadioGroup>
 
-    <Button
-        android:id="@+id/btn_pick_date"
+    <!-- Date and Time buttons side by side -->
+    <LinearLayout
+        android:id="@+id/ll_datetime"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:layout_marginTop="24dp"
-        android:text="SELECT TARGET DATE"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#444444"
-        app:layout_constraintTop_toBottomOf="@id/rg_priority" />
+        app:layout_constraintTop_toBottomOf="@id/rg_priority">
+
+        <Button
+            android:id="@+id/btn_pick_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SELECT DATE"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#444444"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btn_pick_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SELECT TIME"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#444444" />
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/btn_save_task"
@@ -96,6 +123,6 @@
         android:backgroundTint="#E50000"
         android:textColor="#FFFFFF"
         android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/btn_pick_date" />
+        app:layout_constraintTop_toBottomOf="@id/ll_datetime" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
