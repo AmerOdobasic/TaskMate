@@ -39,7 +39,6 @@ public class NotificationsHelper {
     public static void showTaskNotification(Context context, int taskId, String taskTitle, String dueDate) {
 
         // Intent to open the app when the user taps the notification
-        // Once Member 4 builds TaskDetailActivity, you can replace this with that Activity
         Intent intent = context.getPackageManager()
                 .getLaunchIntentForPackage(context.getPackageName());
         if (intent != null) {
@@ -53,11 +52,13 @@ public class NotificationsHelper {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        // Build the notification
+        // Build the notification with clear reminder messaging
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_dialog_info) // swap with your own icon later
-                .setContentTitle("Task Due Soon: " + taskTitle)
-                .setContentText("Due: " + dueDate)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle("⏰ Reminder: " + taskTitle)
+                .setContentText("This task is due in 24 hours — Due: " + dueDate)
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText("Your task \"" + taskTitle + "\" is due in 24 hours.\nDue: " + dueDate + "\n\nTap to open TaskMate."))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true); // dismisses notification when tapped

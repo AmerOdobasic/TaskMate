@@ -16,6 +16,7 @@ import com.group13.studysync.R;
 import com.group13.studysync.data.Task;
 import com.group13.studysync.data.TaskViewModel;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class CalendarFragment extends Fragment {
@@ -55,10 +56,20 @@ public class CalendarFragment extends Fragment {
         });
 
         calendarView.setOnDateChangeListener((view1, year, month, dayOfMonth) -> {
-            selectedDate = (month + 1) + "/" + dayOfMonth + "/" + year;
+            // Format as yyyy-MM-dd to match the date format saved by AddTaskActivity
+            selectedDate = String.format("%04d-%02d-%02d", year, month + 1, dayOfMonth);
             tvScheduleHeader.setText("Tasks for " + selectedDate);
             filterTasksByDate();
         });
+
+        // Auto-select today's date on load so tasks show immediately
+        Calendar cal = Calendar.getInstance();
+        selectedDate = String.format("%04d-%02d-%02d",
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH) + 1,
+                cal.get(Calendar.DAY_OF_MONTH));
+        tvScheduleHeader.setText("Tasks for " + selectedDate);
+        filterTasksByDate();
 
         return view;
     }
@@ -70,7 +81,8 @@ public class CalendarFragment extends Fragment {
         displayedDatabaseTasks.clear();
 
         for (Task task : allDatabaseTasks) {
-            if (selectedDate.equals(task.getDueDate()) && !task.isComplete()) {
+            // Use startsWith to handle tasks with time appended e.g. "2026-03-25 21:17"
+            if (task.getDueDate().startsWith(selectedDate) && !task.isComplete()) {
                 int color = TaskColorHelper.getColorFromPriority(task.getPriority());
                 dailyTasks.add(new TaskItem(task.getTitle(), task.getDescription(), color, task.getDueDate()));
                 displayedDatabaseTasks.add(task);
