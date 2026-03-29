@@ -9,8 +9,8 @@ import java.util.List;
 
 /**
  * ViewModel for the TaskMate app.
- * Acts as a bridge between the UI (which the second team works on) and the Repository (Member 1).
- * It survives configuration changes like screen rotations.
+ * Acts as a bridge between the UI (which the second team works on) and the Repository
+ * It survives config changes like screen rotations.
  */
 public class TaskViewModel extends AndroidViewModel {
     private TaskRepository repository;
@@ -39,8 +39,8 @@ public class TaskViewModel extends AndroidViewModel {
     }
 
     /**
-     * Returns the LiveData list that the UI will observe.
-     * The UI will automatically update whenever the database changes
+     * Returns the LiveData list that the interface will observe.
+     * It will automatically update whenever the database changes
      */
     public LiveData<List<Task>> getAllTasks() {
         return allTasks;
